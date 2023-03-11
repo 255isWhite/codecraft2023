@@ -1,0 +1,3 @@
+/home/zephyrus/exploring/codecraft2023/app/build/CMakeFiles/solution.dir
+/home/zephyrus/exploring/codecraft2023/app/build/CMakeFiles/edit_cache.dir
+/home/zephyrus/exploring/codecraft2023/app/build/CMakeFiles/rebuild_cache.dir
