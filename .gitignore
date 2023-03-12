@@ -1,3 +1,4 @@
 .vscode/**
 .replayer/**
 .replay/**
+.app/build/replay/**

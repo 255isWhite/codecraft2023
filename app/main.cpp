@@ -7,7 +7,7 @@ int main() {
     while (solution->GetFrameInfo())
     {
         solution->AssaignTasks();
-        solution->PublishOrders();
+        //solution->PublishOrders();
     }
 
     return EXIT_SUCCESS;
