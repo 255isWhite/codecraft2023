@@ -49,8 +49,7 @@ class Solution{
      ~Solution();
      void InitMap();  // init 100*100 map
      bool GetFrameInfo(); // get information of workbenches and robots per frame
-     void AssaignTasks(); // try to get a plan for each robot
-     void PublishOrders(); // tell robots about their tasks
+     void AssaignTasks(); // try to get a plan for each robot and print it
 
      void MoveRobot2Workbench(int& id_robo,int& id_wb);
      void CalculateDistance(int& id_robo,int& id_wb);

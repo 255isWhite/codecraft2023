@@ -152,20 +152,6 @@ void Solution::AssaignTasks(){
     fflush(stdout); // no need to change
 }
 
-void Solution::PublishOrders(){
-    cout<<current_frame_<<endl; // no need to change
-
-    // custom methods here
-    float speed=6., ang=3.;
-    for(int i=0;i<4;++i){
-        robots_[i]->Forward(speed);
-        robots_[i]->Rotate(ang);
-    }
-
-    cout<<"OK"<<endl; // no need to change
-    fflush(stdout); // no need to change
-}
-
 void Solution::MoveRobot2Workbench(int& id_robo,int& id_wb){
     // calculate linear speed
     float dis = robots_[id_robo]->target_distance;
