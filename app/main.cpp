@@ -6,7 +6,7 @@ int main() {
     solution->InitMap();
     while (solution->GetFrameInfo())
     {
-        solution->AssaignTasks();
+        solution->AssignTasks();
     }
 
     return EXIT_SUCCESS;

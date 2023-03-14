@@ -2,3 +2,5 @@
 .replayer/**
 .replay/**
 .app/build/replay/**
+.app/build/CMakeFiles
+.app/CodeCraft-2023.zip

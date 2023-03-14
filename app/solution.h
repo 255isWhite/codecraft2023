@@ -10,6 +10,7 @@
 #include <chrono>
 #include <cmath>
 #include <algorithm>
+#include <ctime>
 
 using namespace std;
 using namespace chrono;
@@ -18,6 +19,7 @@ using Workbench = struct {
     //using Ptr = shared_ptr<Workbench>;
     float x=0., y=0.;
     int type=0, time_left=-1 , sources_status=0 , product_status=0, idx=-1;
+    bool has_been_assigned=false;
 };
 
 class Robot{
@@ -28,7 +30,7 @@ class Robot{
             linear_speed_x=0., linear_speed_y=0., \
             face_where=0., x=0., y=0.; // same order as definitions given by task instructions
 
-     int idx=-1, target_id=-1;
+     int idx=-1, target_id=-1, target_type=-1;
      float target_distance=99.;
      bool busy = false;
      // some actions can be done
@@ -37,6 +39,15 @@ class Robot{
      inline void Buy();
      inline void Sell();
      inline void Destroy();
+
+     inline void ResetTarget(){
+        target_id = -1;
+        target_type = -1;
+     }
+
+     inline bool HasTarget(){
+        return target_type>0;
+     }
 
      
 };
@@ -49,19 +60,23 @@ class Solution{
      ~Solution();
      void InitMap();  // init 100*100 map
      bool GetFrameInfo(); // get information of workbenches and robots per frame
-     void AssaignTasks(); // try to get a plan for each robot and print it
+     void AssignTasks(); // try to get a plan for each robot and print it
 
-     void MoveRobot2Workbench(int& id_robo,int& id_wb);
-     void CalculateDistance(int& id_robo,int& id_wb);
+     void MoveRobot2Workbench(int& id_robo,int& type,int& id_wb);
+     float CalculateDistance(int& id_robo,int type,int& id_wb);
      void SetTarget(int& id_robo);
      void KeepRobotWait(int& id_robo);
+     void SelectNearestWorkbench(float& dis_now, int type, int& id_robo);
+     void CheckProduct(int& id_robo);
+     void FindNearestSameWorkbench(int& type, int& id, int& id_robo);
 
 
     private:
      vector<vector<int>> map_;
-     int current_frame_=0 ,current_money_=0 ,nums_workbench_=0;
+     int current_frame_=0 ,current_money_=0 ,nums_workbench_=0, rand_num=0;
      vector<Robot::Ptr> robots_; // store 4 robots
-     vector<Workbench> workbenches_; // store all workbenches
+     vector<vector<Workbench>> workbenches_; // store all workbenches
+     vector<int> wb_count;
      
 };
 
