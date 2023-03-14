@@ -165,7 +165,7 @@ void Solution::AssignTasks(){
             }
         } else {
             SetTarget(i);
-            cerr<<"id "<<i<<" target "<<robots_[i]->target_type<<","<<robots_[i]->target_id<<endl;
+            //cerr<<"id "<<i<<" target "<<robots_[i]->target_type<<","<<robots_[i]->target_id<<endl;
             MoveRobot2Workbench(i,r->target_type,r->target_id);
         }
     }
@@ -250,6 +250,7 @@ void Solution::SetTarget(int& id_robo){
         robots_[id_robo]->busy = true;
     } else {
         CheckProduct(id_robo);
+        //cerr<<"id "<<id_robo<<" tar "<<robots_[id_robo]->target_type<<endl;
         if(robots_[id_robo]->HasTarget()){
             robots_[id_robo]->busy = true;
         } else {
@@ -261,7 +262,7 @@ void Solution::SetTarget(int& id_robo){
 void Solution::SelectNearestWorkbench(float& dis_now, int type, int& id_robo){
     for(int i=0;i<workbenches_[type].size();++i){
         float temp_dis=99.;
-        if(temp_dis = CalculateDistance(id_robo,8,i) < dis_now){
+        if(temp_dis = CalculateDistance(id_robo,type,i) < dis_now){
             dis_now = temp_dis;
             robots_[id_robo]->target_id = i;
             robots_[id_robo]->target_type = type;
