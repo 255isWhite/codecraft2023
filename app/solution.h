@@ -19,7 +19,9 @@ using Workbench = struct {
     //using Ptr = shared_ptr<Workbench>;
     float x=0., y=0.;
     int type=0, time_left=-1 , sources_status=0 , product_status=0, idx=-1;
-    bool has_been_assigned=false;
+    bool product_been_prdered=false;
+    int source_deliver_status = 0;// only 4,5,6,7 workbenches have this , present in bit;
+
 };
 
 class Robot{
@@ -33,6 +35,10 @@ class Robot{
      int idx=-1, target_id=-1, target_type=-1;
      float target_distance=99.;
      bool busy = false;
+     int wait_time = 0; // if wait too long , just destroy wahtever carried
+
+     float virtual_force = 0., virtual_speed = 0., virtual_angle = 0.;
+
      // some actions can be done
      inline void Rotate(float& x);
      inline void Forward(float& x);
@@ -62,13 +68,17 @@ class Solution{
      bool GetFrameInfo(); // get information of workbenches and robots per frame
      void AssignTasks(); // try to get a plan for each robot and print it
 
-     void MoveRobot2Workbench(int& id_robo,int& type,int& id_wb);
-     float CalculateDistance(int& id_robo,int type,int& id_wb);
-     void SetTarget(int& id_robo);
-     void KeepRobotWait(int& id_robo);
-     void SelectNearestWorkbench(float& dis_now, int type, int& id_robo);
-     void CheckProduct(int& id_robo);
-     void FindNearestSameWorkbench(int& type, int& id, int& id_robo);
+     void MoveRobot2Target(const int& id_robo);
+     float CalculateDistance(const float& x1,const float& y1,const float& x2,const float& y2);
+     float CalculateAngle(const float& x1,const float& y1,const float& x2,const float& y2);
+     void SetTarget(const int& id_robo);
+     void KeepRobotWait(const int& id_robo);
+     void SelectNearestWorkbench(float& dis_now, int type,const int& id_robo);
+     void CheckProduct(const int& id_robo);
+     void FindNearestSameWorkbench(const int& type,const int id, int& id_robo);
+     void DetectLazyRobot();
+     bool SearchThisTypeReadyWorkbench(int type,const int& id_robo);
+     void ComputeVirtualForce(const int& id_robo);
 
 
     private:
@@ -76,7 +86,8 @@ class Solution{
      int current_frame_=0 ,current_money_=0 ,nums_workbench_=0, rand_num=0;
      vector<Robot::Ptr> robots_; // store 4 robots
      vector<vector<Workbench>> workbenches_; // store all workbenches
-     vector<int> wb_count;
+     vector<int> wb_count_;
+     float k_gravity_ = 1.0, k_obstacle_ = 1.0, collision_dis_ = 10.0, gravity_dis_ = 3.0;
      
 };
 
