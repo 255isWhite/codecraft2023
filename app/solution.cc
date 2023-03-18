@@ -131,11 +131,14 @@ bool Solution::GetFrameInfo(){
 
 void Solution::AssignTasks(){
     cout<<current_frame_<<endl; // no need to change
+    //cerr<<"stat "<<workbenches_[7][0].source_deliver_status<<endl;
+
     //do something
     DetectLazyRobot();
     for(int i=0;i<4;++i){
         auto r = robots_[i];
         if(r->busy){
+            if(!CheckTargetSourceStatus(i)) continue;
             if(r->workbench_near == workbenches_[r->target_type][r->target_id].idx){
                 int thing_type = r->thing_carry;
                 if(thing_type == 0){
@@ -150,12 +153,14 @@ void Solution::AssignTasks(){
                         r->ResetTarget();
                     } else {
                         r->Sell();
+                        auto rb = robots_[i];
+                        if(workbenches_[7].size()==1 && rb->target_type==7)
+                        workbenches_[rb->target_type][rb->target_id].source_deliver_status &= ~(1<<rb->thing_carry);
                         r->busy = false;
                         r->ResetTarget();
                     }
                 }
             } else {
-                if(CheckTargetSourceStatus(i)) 
                     MoveRobot2Target(i);
             }
         } else {
@@ -174,6 +179,25 @@ bool Solution::CheckTargetSourceStatus(const int& id_robo){
         r->ResetTarget();
         return false;
     }
+    if(workbenches_[7].size()==1 && (!r->thing_carry) &&(1&(workbenches_[7][0].source_deliver_status>>r->target_type))){
+        r->busy = false;
+        r->ResetTarget();
+        return false;
+    }
+    // if(workbenches_[7].size()==1 && r->target_type==7){
+    //     for(auto rb:robots_){
+    //         if(rb->idx == r->idx)
+    //             continue;
+    //         if(rb->target_type==7){
+    //             if(rb->thing_carry == r->target_type){
+    //                 r->busy = false;
+    //                 r->ResetTarget();
+    //                 return false;
+    //             }
+    //         };
+    //     }
+
+    // }
     return true;
 }
 
@@ -181,36 +205,49 @@ void Solution::ComputeVirtualForce(const int& id_robo){
     auto rb = robots_[id_robo];
     if(rb->target_type==-1){
         rb->virtual_force = 0;
+        rb->virtual_angle = rb->face_where;
     } else {
         auto rb = robots_[id_robo];
         auto wb = &workbenches_[rb->target_type][rb->target_id];
         float angle = CalculateAngle(rb->x,rb->y,wb->x,wb->y);
-        float distance = CalculateDistance(rb->x,rb->y,wb->x,wb->y);
-        float gravity_force = k_gravity_ * distance;
-        if(distance < gravity_dis_) gravity_force = gravity_force/distance*gravity_dis_;
-        float total_force_x = gravity_force * cos(angle);
-        float total_force_y = gravity_force * sin(angle);
-        //cerr<<"id "<<id_robo<<" gravity "<<gravity_force<<endl;
-        //cerr<<"id "<<id_robo<<" virtual angle before"<<atan2(total_force_y,total_force_x)<<endl;
+
+        // gravity
+        // float distance = CalculateDistance(rb->x,rb->y,wb->x,wb->y);
+        // float gravity_force = k_gravity_ * distance;
+        // if(distance < gravity_dis_) gravity_force = gravity_force/distance*gravity_dis_;
+        // float total_force_x = gravity_force * cos(angle);
+        // float total_force_y = gravity_force * sin(angle);
 
         for(auto& robot:robots_){
             if(robot->idx==id_robo) continue;
             int sign = (rand_force_++%2)?1:1;
             float x1 = rb->x+cos(angle)*1 , y1= rb->y+sin(angle)*1;
             float estimate_dis1 =  CalculateDistance(x1,y1,robot->x,robot->y);
-            if(estimate_dis1 < 0.5){
-                angle += sign*M_PI/2;
+            if(estimate_dis1 < 0.9){
+                angle += sign*M_PI/4;
+                break;
+            }
+            float x2 = rb->x+cos(angle)*2 , y2= rb->y+sin(angle)*2;
+            float estimate_dis2 =  CalculateDistance(x2,y2,robot->x,robot->y);
+            if(estimate_dis2 < 0.9){
+                angle += sign*M_PI/4;
                 break;
             }
             float x3 = rb->x+cos(angle)*3 , y3= rb->y+sin(angle)*3;
             float estimate_dis3 =  CalculateDistance(x3,y3,robot->x,robot->y);
-            if(estimate_dis3 < 0.5){
-                angle += sign*M_PI/3;
+            if(estimate_dis3 < 0.9){
+                angle += sign*M_PI/4;
                 break;
             }
             float x5 = rb->x+cos(angle)*5 , y5= rb->y+sin(angle)*5;
             float estimate_dis5 =  CalculateDistance(x5,y5,robot->x,robot->y);
-            if(estimate_dis5 < 0.5){
+            if(estimate_dis5 < 0.8){
+                angle += sign*M_PI/6;
+                break;
+            }
+            float x10 = rb->x+cos(angle)*10 , y10= rb->y+sin(angle)*10;
+            float estimate_dis10 =  CalculateDistance(x10,y10,robot->x,robot->y);
+            if(estimate_dis10 < 0.5){
                 angle += sign*M_PI/6;
                 break;
             }
@@ -242,7 +279,7 @@ void Solution::ComputeVirtualForce(const int& id_robo){
 
 void Solution::MoveRobot2Target(const int& id_robo){
 
-    //if(id_robo==2 || id_robo==3) return;
+    // if(id_robo==2 || id_robo==3 || id_robo==1) return;
 
     if(robots_[id_robo]->target_id == -1){
         KeepRobotWait(id_robo);
@@ -286,10 +323,10 @@ void Solution::MoveRobot2Target(const int& id_robo){
     else border = 0.9163;
     double dis = rb->target_distance;
     border += 0.2;
-    speed = min(6.,exp(dis));
-    speed = (dis<0.4?2:speed);
+    speed = min(6.,exp(dis)-0.1);
+    // speed = (dis<0.4?:speed);
 
-    if(abs(rot_speed)>3) speed= speed>3?3:speed;
+    if(abs(rot_speed)>3) speed= speed>4?4:speed;
 
     // pub movement actions
     rb->Forward(speed);
@@ -338,7 +375,12 @@ void Solution::SetTarget(const int& id_robo){
         
         if(robots_[id_robo]->target_id == -1)
             robots_[id_robo]->busy = false;
-        else robots_[id_robo]->busy = true;
+        else {
+            robots_[id_robo]->busy = true;
+            auto rb = robots_[id_robo];
+            if(workbenches_[7].size()==1 && rb->target_type==7)
+            workbenches_[rb->target_type][rb->target_id].source_deliver_status |= (1<<rb->thing_carry);
+        }
         //cerr<<"id "<<id_robo<<" tar "<<robots_[id_robo]->target_type<<endl;
     } else {
         bool has_target = CheckProduct(id_robo);
@@ -358,7 +400,7 @@ void Solution::SelectNearestWorkbench(float& dis_emerge, float& dis_now, int typ
     auto rb = robots_[id_robo];
     for(int i=0;i<workbenches_[type].size();++i){
         auto wb = workbenches_[type][i];
-        if(1&(wb.sources_status>>source_type)) continue;
+        if((1&(wb.sources_status>>source_type)) || (1&(wb.source_deliver_status>>source_type))) continue;
         if(type == 7){
             switch (source_type)
             {
@@ -495,17 +537,11 @@ bool Solution::CheckProduct(const int& id_robo){
     bool has_target = SearchThisTypeReadyWorkbench(7,id_robo);
     if(has_target) return true;
 
-    set<int> source_for_7;
-    if(workbenches_[7].size()==1){
-        for(auto rb:robots_){
-            if(rb->target_type==7)
-                source_for_7.insert(rb->thing_carry);
-        }
-    }
-
     for(int i=0;i<workbenches_[7].size();++i){
         for(int type=6;type>=4;--type){
-            if(1&(workbenches_[7][i].sources_status>>type) || source_for_7.count(type))
+            if((1&(workbenches_[7][i].sources_status>>type)))
+                continue;
+            if(workbenches_[7].size()==1 && (1&(workbenches_[7][0].source_deliver_status>>type)))
                 continue;
             has_target = SearchThisTypeReadyWorkbench(type,id_robo);
             if(has_target) break;
@@ -517,11 +553,7 @@ bool Solution::CheckProduct(const int& id_robo){
     if(workbenches_[7].size()==0){
         for(int i=0;i<workbenches_[9].size();++i){
             for(int type=6;type>=4;--type){
-                if(1&(workbenches_[9][i].sources_status>>type))
-                    continue;
-                else{
-                    has_target = SearchThisTypeReadyWorkbench(type,id_robo);
-                }
+                has_target = SearchThisTypeReadyWorkbench(type,id_robo);
                 if(has_target) break;
             }
             if(has_target) break;
@@ -583,7 +615,7 @@ void Solution::DetectLazyRobot(){
         if(rb->linear_speed_x==0 && rb->linear_speed_y==0 && rb->angular_speed==0){
             rb->wait_time ++;
         } else rb->wait_time=0;
-        if(rb->wait_time == 500)
+        if(rb->wait_time == 1000)
             rb->Destroy();
     }
 }
