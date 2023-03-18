@@ -139,21 +139,15 @@ void Solution::AssignTasks(){
             if(r->workbench_near == workbenches_[r->target_type][r->target_id].idx){
                 int thing_type = r->thing_carry;
                 if(thing_type == 0){
-                    // if(workbenches_[r->target_type][r->target_id].product_status){
-                    //     r->Buy();
-                    //     r->busy = false;
-                    //     r->ResetTarget();
-                    // } else {
-                    //     KeepRobotWait(i);
-                    // }
-
+                    if(current_frame_>8500) continue;
                     r->Buy();
                     r->busy = false;
-                    workbenches_[r->target_type][r->target_id].product_been_prdered = false;
+                    workbenches_[r->target_type][r->target_id].product_been_ordered = false;
                     r->ResetTarget();
                 } else {
                     if(1&(workbenches_[r->target_type][r->target_id].sources_status>>thing_type)){
-                        FindNearestSameWorkbench(r->target_type,r->target_id,i);
+                        r->busy = false;
+                        r->ResetTarget();
                     } else {
                         r->Sell();
                         r->busy = false;
@@ -161,16 +155,26 @@ void Solution::AssignTasks(){
                     }
                 }
             } else {
-                MoveRobot2Target(i);
+                if(CheckTargetSourceStatus(i)) 
+                    MoveRobot2Target(i);
             }
         } else {
             SetTarget(i);
-            //cerr<<"id "<<i<<" target "<<robots_[i]->target_type<<","<<robots_[i]->target_id<<endl;
             MoveRobot2Target(i);
         }
     }
     cout<<"OK"<<endl; // no need to change
     fflush(stdout); // no need to change
+}
+
+bool Solution::CheckTargetSourceStatus(const int& id_robo){
+    auto r = robots_[id_robo];
+    if(1&(workbenches_[r->target_type][r->target_id].sources_status>>r->thing_carry)){
+        r->busy = false;
+        r->ResetTarget();
+        return false;
+    }
+    return true;
 }
 
 void Solution::ComputeVirtualForce(const int& id_robo){
@@ -186,27 +190,59 @@ void Solution::ComputeVirtualForce(const int& id_robo){
         if(distance < gravity_dis_) gravity_force = gravity_force/distance*gravity_dis_;
         float total_force_x = gravity_force * cos(angle);
         float total_force_y = gravity_force * sin(angle);
-
+        //cerr<<"id "<<id_robo<<" gravity "<<gravity_force<<endl;
+        //cerr<<"id "<<id_robo<<" virtual angle before"<<atan2(total_force_y,total_force_x)<<endl;
 
         for(auto& robot:robots_){
             if(robot->idx==id_robo) continue;
-            float dis_between = CalculateDistance(rb->x,rb->y,robot->x,robot->y);
-            if(dis_between > collision_dis_) continue;
-            float angle_away = CalculateAngle(robot->x,robot->y,rb->x,rb->y);
-            float force = k_obstacle_ * (1.0/dis_between - 1.0/collision_dis_)*pow(1.0/dis_between,2);
-            float x_force = force * cos(angle_away);
-            float y_force = force * sin(angle_away);
-            total_force_x += x_force;
-            total_force_y += y_force;
+            int sign = (rand_force_++%2)?1:1;
+            float x1 = rb->x+cos(angle)*1 , y1= rb->y+sin(angle)*1;
+            float estimate_dis1 =  CalculateDistance(x1,y1,robot->x,robot->y);
+            if(estimate_dis1 < 0.5){
+                angle += sign*M_PI/2;
+                break;
+            }
+            float x3 = rb->x+cos(angle)*3 , y3= rb->y+sin(angle)*3;
+            float estimate_dis3 =  CalculateDistance(x3,y3,robot->x,robot->y);
+            if(estimate_dis3 < 0.5){
+                angle += sign*M_PI/3;
+                break;
+            }
+            float x5 = rb->x+cos(angle)*5 , y5= rb->y+sin(angle)*5;
+            float estimate_dis5 =  CalculateDistance(x5,y5,robot->x,robot->y);
+            if(estimate_dis5 < 0.5){
+                angle += sign*M_PI/6;
+                break;
+            }
+
+            // other robots give forces
+
+            // float dis_between = CalculateDistance(rb->x,rb->y,robot->x,robot->y);
+            // if(dis_between > collision_dis_) continue;
+            // // float angle_away = CalculateAngle(robot->x,robot->y,rb->x,rb->y);
+            // float angle_away = angle+M_PI_2;
+            // if(angle_away>M_PI) angle_away-=2*M_PI;
+            // float force = k_obstacle_ * (1.0/dis_between - 1.0/collision_dis_)*pow(1.0/dis_between,2);
+            // // cerr<<"id "<<id_robo<<" ot force "<<force<<endl;
+            // float x_force = force * cos(angle_away);
+            // float y_force = force * sin(angle_away);
+            // total_force_x += x_force;
+            // total_force_y += y_force;
         }
 
-        rb->virtual_angle = atan2(total_force_y,total_force_x);
-        //cerr<<"id "<<id_robo<<" angle "<<rb->virtual_angle<<endl;
+        if(angle>M_PI) angle-=2*M_PI;
+        if(angle<-M_PI) angle+=2*M_PI;
+
+        //rb->virtual_angle = atan2(total_force_y,total_force_x);
+        rb->virtual_angle = angle;
+        //cerr<<"id "<<id_robo<<" virtual angle after"<<rb->virtual_angle<<endl;
     }
 
 }
 
 void Solution::MoveRobot2Target(const int& id_robo){
+
+    //if(id_robo==2 || id_robo==3) return;
 
     if(robots_[id_robo]->target_id == -1){
         KeepRobotWait(id_robo);
@@ -224,17 +260,23 @@ void Solution::MoveRobot2Target(const int& id_robo){
 
     float toward_where= rb->virtual_angle;
     float diff = rb->face_where-toward_where;
+    // cerr<<"id "<<id_robo<<" where angle "<<rb->face_where<<endl;
     float abs_diff = abs(diff);
     float sign = diff<0?1.:-1.;
+    if(abs_diff>M_PI){
+        sign*=-1;
+        abs_diff = (2*M_PI-abs_diff);
+    }
     float rot_speed = 0.;
 
-    if(abs_diff > border_theta+0.1){
+    if(abs_diff > border_theta+0.05){
         rot_speed = sign * M_PI;
     } else if(abs_diff > 0.01745){
         rot_speed = sign * 0.15;
     } else {
         rot_speed = sign * 0.02;
     }
+    //cerr<<"id "<<id_robo<<" rot "<<rot_speed<<endl;
 
     float speed = 0.;
     // calculate linear speed
@@ -244,7 +286,7 @@ void Solution::MoveRobot2Target(const int& id_robo){
     else border = 0.9163;
     double dis = rb->target_distance;
     border += 0.2;
-    speed = (dis<border?0.5:6.);
+    speed = min(6.,exp(dis));
     speed = (dis<0.4?0.:speed);
 
     if(abs(rot_speed)>3) speed=0;
@@ -276,20 +318,27 @@ void Solution::SetTarget(const int& id_robo){
         int type_carry = robots_[id_robo]->thing_carry;
         float dis = 99.;
         if(type_carry == 7){
-            SelectNearestWorkbench(dis,8,id_robo);
-            SelectNearestWorkbench(dis,9,id_robo);
+            SelectNearestWorkbench(dis,8,id_robo,type_carry);
+            SelectNearestWorkbench(dis,9,id_robo,type_carry);
         } else if(type_carry==4 || type_carry==5 || type_carry==6){
-            SelectNearestWorkbench(dis,7,id_robo);
-            SelectNearestWorkbench(dis,9,id_robo);
+            SelectNearestWorkbench(dis,7,id_robo,type_carry);
+            if(workbenches_[7].size()==0) SelectNearestWorkbench(dis,9,id_robo,type_carry);
         } else if(type_carry==1){
-            SelectNearestWorkbench(dis,4+id_robo%2,id_robo);
+            SelectNearestWorkbench(dis,4,id_robo,type_carry);
+            SelectNearestWorkbench(dis,5,id_robo,type_carry);
         } else if(type_carry==2){
-            SelectNearestWorkbench(dis,4+2*(id_robo%2),id_robo);
+            SelectNearestWorkbench(dis,4,id_robo,type_carry);
+            SelectNearestWorkbench(dis,6,id_robo,type_carry);
         } else if(type_carry==3){
-            SelectNearestWorkbench(dis,6-id_robo%2,id_robo);
+            SelectNearestWorkbench(dis,5,id_robo,type_carry);
+            SelectNearestWorkbench(dis,6,id_robo,type_carry);
+            // int i = id_robo;
+            // cerr<<"id "<<id_robo<<" target "<<robots_[i]->target_type<<","<<robots_[i]->target_id<<endl;
         } else cerr<<"ERROR carry "<<type_carry<<endl;
-
-        robots_[id_robo]->busy = true;
+        
+        if(robots_[id_robo]->target_id == -1)
+            robots_[id_robo]->busy = false;
+        else robots_[id_robo]->busy = true;
         //cerr<<"id "<<id_robo<<" tar "<<robots_[id_robo]->target_type<<endl;
     } else {
         CheckProduct(id_robo);
@@ -302,12 +351,13 @@ void Solution::SetTarget(const int& id_robo){
     }
 }
 
-void Solution::SelectNearestWorkbench(float& dis_now, int type,const int& id_robo){
+void Solution::SelectNearestWorkbench(float& dis_now, int type,const int& id_robo, int& source_type){
     auto rb = robots_[id_robo];
     for(int i=0;i<workbenches_[type].size();++i){
-        float temp_dis=99.;
         auto wb = workbenches_[type][i];
-        if(temp_dis = CalculateDistance(rb->x,rb->y,wb.x,wb.y) < dis_now){
+        if(1&(wb.sources_status>>source_type)) continue;
+        float temp_dis = CalculateDistance(rb->x,rb->y,wb.x,wb.y);
+        if(temp_dis < dis_now){
             dis_now = temp_dis;
             robots_[id_robo]->target_id = i;
             robots_[id_robo]->target_type = type;
@@ -317,6 +367,9 @@ void Solution::SelectNearestWorkbench(float& dis_now, int type,const int& id_rob
 
 void Solution::CheckProduct(const int& id_robo){
 
+    // 有7直接拿， 
+    // 有4，5，6需要看看7缺不缺，缺就拿，根本没有工作台7的话就拿给9
+    // 
     bool has_target = SearchThisTypeReadyWorkbench(7,id_robo);
     if(has_target) return;
 
@@ -329,21 +382,28 @@ void Solution::CheckProduct(const int& id_robo){
             }
             if(has_target) break;
         }
+        if(has_target) break;
+    }
+    if(has_target) return;
+    if(workbenches_[7].size()==0){
+        for(int i=0;i<workbenches_[9].size();++i){
+            for(int type=6;type>=4;--type){
+                if(1&(workbenches_[9][i].sources_status>>type))
+                    continue;
+                else{
+                    has_target = SearchThisTypeReadyWorkbench(type,id_robo);
+                }
+                if(has_target) break;
+            }
+            if(has_target) break;
+        }
     }
     if(has_target) return;
 
-    rand_num++;
-    int target_type = rand_num%3+1;
-    for(int j=0;j<workbenches_[target_type].size();++j){
-        auto wb = &workbenches_[target_type][j];
-        // cerr<<"status "<<wb.product_status<<" has "<<!wb.product_been_prdered<<endl;
-        if(wb->product_status && !wb->product_been_prdered){
-            wb->product_been_prdered = true;
-            robots_[id_robo]->target_type = target_type;
-            robots_[id_robo]->target_id = j; 
-            return;
-        }
-    }
+    rand_num_++;
+    int target_type = rand_num_%3+1;
+    has_target = SearchThisTypeReadyWorkbench(target_type,id_robo);
+    if(has_target) return;
 
 }
 
@@ -353,9 +413,9 @@ bool Solution::SearchThisTypeReadyWorkbench(int type,const int& id_robo){
     auto rb = robots_[id_robo];
     for(int j=0;j<workbenches_[type].size();++j){
         auto wb = &workbenches_[type][j];
-        if(wb->product_status && !wb->product_been_prdered){
+        if(wb->product_status && !wb->product_been_ordered){
             float temp_dis = CalculateDistance(rb->x,rb->y,wb->x,wb->y);
-            cerr<<"temp "<<temp_dis<<" type "<<type<<" id "<<j<<endl;
+            // cerr<<"temp "<<temp_dis<<" type "<<type<<" id "<<j<<endl;
             if(temp_dis<dis){
                 dis = temp_dis;
                 nearest_id = j;
@@ -364,7 +424,7 @@ bool Solution::SearchThisTypeReadyWorkbench(int type,const int& id_robo){
     }
     if(nearest_id != -1){
         auto wb = &workbenches_[type][nearest_id];
-        wb->product_been_prdered = true;
+        wb->product_been_ordered = true;
         robots_[id_robo]->target_type = type;
         robots_[id_robo]->target_id = nearest_id; 
         return true;

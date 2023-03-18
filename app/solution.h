@@ -19,7 +19,7 @@ using Workbench = struct {
     //using Ptr = shared_ptr<Workbench>;
     float x=0., y=0.;
     int type=0, time_left=-1 , sources_status=0 , product_status=0, idx=-1;
-    bool product_been_prdered=false;
+    bool product_been_ordered=false;
     int source_deliver_status = 0;// only 4,5,6,7 workbenches have this , present in bit;
 
 };
@@ -73,21 +73,22 @@ class Solution{
      float CalculateAngle(const float& x1,const float& y1,const float& x2,const float& y2);
      void SetTarget(const int& id_robo);
      void KeepRobotWait(const int& id_robo);
-     void SelectNearestWorkbench(float& dis_now, int type,const int& id_robo);
+     void SelectNearestWorkbench(float& dis_now, int type,const int& id_robo, int& source_type);
      void CheckProduct(const int& id_robo);
      void FindNearestSameWorkbench(const int& type,const int id, int& id_robo);
      void DetectLazyRobot();
      bool SearchThisTypeReadyWorkbench(int type,const int& id_robo);
      void ComputeVirtualForce(const int& id_robo);
+     bool CheckTargetSourceStatus(const int& id_robo);
 
 
     private:
      vector<vector<int>> map_;
-     int current_frame_=0 ,current_money_=0 ,nums_workbench_=0, rand_num=0;
+     int current_frame_=0 ,current_money_=0 ,nums_workbench_=0, rand_num_=0, rand_force_ = 0;
      vector<Robot::Ptr> robots_; // store 4 robots
      vector<vector<Workbench>> workbenches_; // store all workbenches
      vector<int> wb_count_;
-     float k_gravity_ = 1.0, k_obstacle_ = 1.0, collision_dis_ = 10.0, gravity_dis_ = 3.0;
+     float k_gravity_ = 1.0, k_obstacle_ = 10.0, collision_dis_ = 1.5, gravity_dis_ = 3.0;
      
 };
 
