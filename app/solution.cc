@@ -287,9 +287,9 @@ void Solution::MoveRobot2Target(const int& id_robo){
     double dis = rb->target_distance;
     border += 0.2;
     speed = min(6.,exp(dis));
-    speed = (dis<0.4?0.:speed);
+    speed = (dis<0.4?2:speed);
 
-    if(abs(rot_speed)>3) speed=0;
+    if(abs(rot_speed)>3) speed= speed>3?3:speed;
 
     // pub movement actions
     rb->Forward(speed);
@@ -495,18 +495,25 @@ bool Solution::CheckProduct(const int& id_robo){
     bool has_target = SearchThisTypeReadyWorkbench(7,id_robo);
     if(has_target) return true;
 
+    set<int> source_for_7;
+    if(workbenches_[7].size()==1){
+        for(auto rb:robots_){
+            if(rb->target_type==7)
+                source_for_7.insert(rb->thing_carry);
+        }
+    }
+
     for(int i=0;i<workbenches_[7].size();++i){
         for(int type=6;type>=4;--type){
-            if(1&(workbenches_[7][i].sources_status>>type))
+            if(1&(workbenches_[7][i].sources_status>>type) || source_for_7.count(type))
                 continue;
-            else{
-                has_target = SearchThisTypeReadyWorkbench(type,id_robo);
-            }
+            has_target = SearchThisTypeReadyWorkbench(type,id_robo);
             if(has_target) break;
         }
         if(has_target) break;
     }
     if(has_target) return true;
+
     if(workbenches_[7].size()==0){
         for(int i=0;i<workbenches_[9].size();++i){
             for(int type=6;type>=4;--type){
@@ -601,25 +608,3 @@ void Robot::Buy(){
 void Robot::Destroy(){
     cout<<"destroy "<<idx<<endl;
 }
-
-
-
-    // ORIGINAL official demo
-
-    // readUntilOK();
-    // puts("OK");
-    // fflush(stdout);
-    // int frameID;
-    // while (scanf("%d", &frameID) != EOF) {
-    //     readUntilOK();
-    //     printf("%d\n", frameID);
-    //     int lineSpeed = 3;
-    //     double angleSpeed = 1.5;
-    //     for(int robotId = 0; robotId < 4; robotId++){
-    //         printf("forward %d %d\n", robotId, lineSpeed);
-    //         printf("rotate %d %f\n", robotId, angleSpeed);
-    //     }
-    //     printf("OK\n", frameID);
-    //     fflush(stdout);
-    // }
-    // return 0;
