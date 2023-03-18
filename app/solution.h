@@ -73,8 +73,8 @@ class Solution{
      float CalculateAngle(const float& x1,const float& y1,const float& x2,const float& y2);
      void SetTarget(const int& id_robo);
      void KeepRobotWait(const int& id_robo);
-     void SelectNearestWorkbench(float& dis_now, int type,const int& id_robo, int& source_type);
-     void CheckProduct(const int& id_robo);
+     void SelectNearestWorkbench(float& dis_emerge ,float& dis_now, int type,const int& id_robo, int& source_type);
+     bool CheckProduct(const int& id_robo);
      void FindNearestSameWorkbench(const int& type,const int id, int& id_robo);
      void DetectLazyRobot();
      bool SearchThisTypeReadyWorkbench(int type,const int& id_robo);

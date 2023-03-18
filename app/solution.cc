@@ -139,7 +139,7 @@ void Solution::AssignTasks(){
             if(r->workbench_near == workbenches_[r->target_type][r->target_id].idx){
                 int thing_type = r->thing_carry;
                 if(thing_type == 0){
-                    if(current_frame_>8500) continue;
+                    if(current_frame_>8750) continue;
                     r->Buy();
                     r->busy = false;
                     workbenches_[r->target_type][r->target_id].product_been_ordered = false;
@@ -316,22 +316,22 @@ void Solution::SetTarget(const int& id_robo){
     if(robots_[id_robo]->thing_carry){
         // situation 1: things on robot, unbusy, wants know where to go
         int type_carry = robots_[id_robo]->thing_carry;
-        float dis = 99.;
+        float dis = 99., dis_emerge=99.;
         if(type_carry == 7){
-            SelectNearestWorkbench(dis,8,id_robo,type_carry);
-            SelectNearestWorkbench(dis,9,id_robo,type_carry);
+            SelectNearestWorkbench(dis_emerge,dis,8,id_robo,type_carry);
+            SelectNearestWorkbench(dis_emerge,dis,9,id_robo,type_carry);
         } else if(type_carry==4 || type_carry==5 || type_carry==6){
-            SelectNearestWorkbench(dis,7,id_robo,type_carry);
-            if(workbenches_[7].size()==0) SelectNearestWorkbench(dis,9,id_robo,type_carry);
+            if(workbenches_[7].size()==0) SelectNearestWorkbench(dis_emerge, dis,9,id_robo,type_carry);
+            SelectNearestWorkbench(dis_emerge,dis,7,id_robo,type_carry);
         } else if(type_carry==1){
-            SelectNearestWorkbench(dis,4,id_robo,type_carry);
-            SelectNearestWorkbench(dis,5,id_robo,type_carry);
+            SelectNearestWorkbench(dis_emerge,dis,4,id_robo,type_carry);
+            SelectNearestWorkbench(dis_emerge,dis,5,id_robo,type_carry);
         } else if(type_carry==2){
-            SelectNearestWorkbench(dis,4,id_robo,type_carry);
-            SelectNearestWorkbench(dis,6,id_robo,type_carry);
+            SelectNearestWorkbench(dis_emerge,dis,4,id_robo,type_carry);
+            SelectNearestWorkbench(dis_emerge,dis,6,id_robo,type_carry);
         } else if(type_carry==3){
-            SelectNearestWorkbench(dis,5,id_robo,type_carry);
-            SelectNearestWorkbench(dis,6,id_robo,type_carry);
+            SelectNearestWorkbench(dis_emerge,dis,5,id_robo,type_carry);
+            SelectNearestWorkbench(dis_emerge,dis,6,id_robo,type_carry);
             // int i = id_robo;
             // cerr<<"id "<<id_robo<<" target "<<robots_[i]->target_type<<","<<robots_[i]->target_id<<endl;
         } else cerr<<"ERROR carry "<<type_carry<<endl;
@@ -341,7 +341,10 @@ void Solution::SetTarget(const int& id_robo){
         else robots_[id_robo]->busy = true;
         //cerr<<"id "<<id_robo<<" tar "<<robots_[id_robo]->target_type<<endl;
     } else {
-        CheckProduct(id_robo);
+        bool has_target = CheckProduct(id_robo);
+        if(!has_target){
+
+        }
         //cerr<<"id "<<id_robo<<" tar "<<robots_[id_robo]->target_type<<endl;
         if(robots_[id_robo]->HasTarget()){
             robots_[id_robo]->busy = true;
@@ -351,11 +354,130 @@ void Solution::SetTarget(const int& id_robo){
     }
 }
 
-void Solution::SelectNearestWorkbench(float& dis_now, int type,const int& id_robo, int& source_type){
+void Solution::SelectNearestWorkbench(float& dis_emerge, float& dis_now, int type,const int& id_robo, int& source_type){
     auto rb = robots_[id_robo];
     for(int i=0;i<workbenches_[type].size();++i){
         auto wb = workbenches_[type][i];
         if(1&(wb.sources_status>>source_type)) continue;
+        if(type == 7){
+            switch (source_type)
+            {
+            case 4:
+                if((1&(wb.sources_status>>5)) && (1&(wb.sources_status>>6))){
+                    float temp = CalculateDistance(rb->x,rb->y,wb.x,wb.y);
+                    if(temp < dis_emerge){
+                        dis_emerge = temp;
+                        robots_[id_robo]->target_id = i;
+                        robots_[id_robo]->target_type = type;  
+                    }
+                }
+                break;
+            case 5:
+                if((1&(wb.sources_status>>4)) && (1&(wb.sources_status>>6))){
+                    float temp = CalculateDistance(rb->x,rb->y,wb.x,wb.y);
+                    if(temp < dis_emerge){
+                        dis_emerge = temp;
+                        robots_[id_robo]->target_id = i;
+                        robots_[id_robo]->target_type = type;  
+                    }
+                }
+                break;
+            case 6:
+                if((1&(wb.sources_status>>4)) && (1&(wb.sources_status>>5))){
+                    float temp = CalculateDistance(rb->x,rb->y,wb.x,wb.y);
+                    if(temp < dis_emerge){
+                        dis_emerge = temp;
+                        robots_[id_robo]->target_id = i;
+                        robots_[id_robo]->target_type = type;  
+                    }
+                }
+                break;
+            default:
+                break;
+            }
+        }
+        if(type == 6){
+            switch (source_type)
+            {
+            case 2:
+                if(1&(wb.sources_status>>3)){
+                    float temp = CalculateDistance(rb->x,rb->y,wb.x,wb.y);
+                    if(temp < dis_emerge){
+                        dis_emerge = temp;
+                        robots_[id_robo]->target_id = i;
+                        robots_[id_robo]->target_type = type;  
+                    }
+                }
+                break;
+            case 3:
+                if(1&(wb.sources_status>>2)){
+                    float temp = CalculateDistance(rb->x,rb->y,wb.x,wb.y);
+                    if(temp < dis_emerge){
+                        dis_emerge = temp;
+                        robots_[id_robo]->target_id = i;
+                        robots_[id_robo]->target_type = type;  
+                    }
+                }
+                break;
+            default:
+                break;
+            }
+        }
+        if(type == 5){
+            switch (source_type)
+            {
+            case 1:
+                if(1&(wb.sources_status>>3)){
+                    float temp = CalculateDistance(rb->x,rb->y,wb.x,wb.y);
+                    if(temp < dis_emerge){
+                        dis_emerge = temp;
+                        robots_[id_robo]->target_id = i;
+                        robots_[id_robo]->target_type = type;  
+                    }
+                }
+                break;
+            case 3:
+                if(1&(wb.sources_status>>1)){
+                    float temp = CalculateDistance(rb->x,rb->y,wb.x,wb.y);
+                    if(temp < dis_emerge){
+                        dis_emerge = temp;
+                        robots_[id_robo]->target_id = i;
+                        robots_[id_robo]->target_type = type;  
+                    }
+                }
+                break;
+            default:
+                break;
+            }
+        }
+        if(type == 4){
+            switch (source_type)
+            {
+            case 1:
+                if(1&(wb.sources_status>>2)){
+                    float temp = CalculateDistance(rb->x,rb->y,wb.x,wb.y);
+                    if(temp < dis_emerge){
+                        dis_emerge = temp;
+                        robots_[id_robo]->target_id = i;
+                        robots_[id_robo]->target_type = type;  
+                    }
+                }
+                break;
+            case 2:
+                if(1&(wb.sources_status>>1)){
+                    float temp = CalculateDistance(rb->x,rb->y,wb.x,wb.y);
+                    if(temp < dis_emerge){
+                        dis_emerge = temp;
+                        robots_[id_robo]->target_id = i;
+                        robots_[id_robo]->target_type = type;  
+                    }
+                }
+                break;
+            default:
+                break;
+            }
+        }
+        if(dis_emerge < 99) continue;
         float temp_dis = CalculateDistance(rb->x,rb->y,wb.x,wb.y);
         if(temp_dis < dis_now){
             dis_now = temp_dis;
@@ -365,13 +487,13 @@ void Solution::SelectNearestWorkbench(float& dis_now, int type,const int& id_rob
     }
 }
 
-void Solution::CheckProduct(const int& id_robo){
+bool Solution::CheckProduct(const int& id_robo){
 
     // 有7直接拿， 
     // 有4，5，6需要看看7缺不缺，缺就拿，根本没有工作台7的话就拿给9
     // 
     bool has_target = SearchThisTypeReadyWorkbench(7,id_robo);
-    if(has_target) return;
+    if(has_target) return true;
 
     for(int i=0;i<workbenches_[7].size();++i){
         for(int type=6;type>=4;--type){
@@ -384,7 +506,7 @@ void Solution::CheckProduct(const int& id_robo){
         }
         if(has_target) break;
     }
-    if(has_target) return;
+    if(has_target) return true;
     if(workbenches_[7].size()==0){
         for(int i=0;i<workbenches_[9].size();++i){
             for(int type=6;type>=4;--type){
@@ -398,12 +520,13 @@ void Solution::CheckProduct(const int& id_robo){
             if(has_target) break;
         }
     }
-    if(has_target) return;
+    if(has_target) return true;
+    //return false;
 
     rand_num_++;
     int target_type = rand_num_%3+1;
     has_target = SearchThisTypeReadyWorkbench(target_type,id_robo);
-    if(has_target) return;
+    if(has_target) return true;
 
 }
 
