@@ -51,7 +51,9 @@ bool Solution::GetFrameInfo(){
             }
         } else if(count <= (1+nums_workbench_)){
             if(nums_workbench_ == 50){
-                if(count >33){ // 针对四号地图
+                if( count==31 || count==14 || count==19 || count==20 || count==23 || count==24){
+                    // nothing
+                } else if(count >= 7 || count==3 || count==7 ){ // 针对四号地图
                     stringstream ss(line);
                     count++;
                     continue;
