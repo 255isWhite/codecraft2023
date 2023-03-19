@@ -76,13 +76,14 @@ class Solution{
      void KeepRobotWait(const int& id_robo);
      void SelectNearestWorkbench(float& dis_emerge ,float& dis_now, int type,const int& id_robo, int& source_type);
      bool CheckProduct(const int& id_robo);
-     void FindNearestSameWorkbench(const int& type,const int id, int& id_robo);
+     int FindNearestWorkbench(const int& type, const int& id_robo, float& dis);
      void DetectLazyRobot();
      bool SearchThisTypeReadyWorkbench(int type,const int& id_robo);
      void ComputeVirtualForce(const int& id_robo);
      bool CheckTargetSourceStatus(const int& id_robo);
      void FindBetterTarget(const int& id_robo);
      void PreventCollision(const int& id_robo ,float& angle, float view_field, float turn_angle,float distance, float radius);
+     void SetTarget(const int& id_robo, int type, int id);
 
 
     private:

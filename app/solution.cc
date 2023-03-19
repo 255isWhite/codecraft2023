@@ -346,7 +346,7 @@ void Solution::PreventCollision(const int& id_robo, float& angle, float view_fie
 
 void Solution::MoveRobot2Target(const int& id_robo){
 
-    // if(id_robo==2 || id_robo==3 || id_robo==1) return;
+    //if(id_robo==2 || id_robo==3 || id_robo==1) return;
 
     if(robots_[id_robo]->target_id == -1){
         KeepRobotWait(id_robo);
@@ -659,10 +659,89 @@ bool Solution::CheckProduct(const int& id_robo){
     //     wb11.product_been_ordered=true;
     // } 
     
+    // float dis = 99.;
+    // int need_type=-1 , need_id = -1;
+    // for(int i=6;i>=4;--i){
+    //     int tt = FindNearestWorkbench(i,id_robo,dis);
+    //     if(tt != -1){
+    //         need_type = i;
+    //         need_id = tt;
+    //     }
+    // }
+
+    // float distance = 99.; 
+    // int target_type = -1, target_id = -1;
+    // switch (need_type)
+    // {
+    // case 6:
+
+    //     {if(!(1&(workbenches_[need_type][need_id].sources_status>>3))){
+    //         int tt = FindNearestWorkbench(3,id_robo,distance);
+    //         if(tt!=-1){
+    //             target_type = 3;
+    //             target_id = tt;
+    //         }
+    //     }
+    //     if(!(1&(workbenches_[need_type][need_id].sources_status>>2))){
+    //         int tt = FindNearestWorkbench(2,id_robo,distance);
+    //         if(tt!=-1){
+    //             target_type = 2;
+    //             target_id = tt;
+    //         }
+    //     }
+    //     SetTarget(id_robo,target_type,target_id);
+    //     has_target = true;
+    //     break;}
+
+    // case 5:
+    //     {
+    //     if(!(1&(workbenches_[need_type][need_id].sources_status>>3))){
+    //         int tt = FindNearestWorkbench(3,id_robo,distance);
+    //         if(tt!=-1){
+    //             target_type = 3;
+    //             target_id = tt;
+    //         }
+    //     }
+    //     if(!(1&(workbenches_[need_type][need_id].sources_status>>1))){
+    //         int tt = FindNearestWorkbench(1,id_robo,distance);
+    //         if(tt!=-1){
+    //             target_type = 1;
+    //             target_id = tt;
+    //         }
+    //     }
+    //     SetTarget(id_robo,target_type,target_id);
+    //     has_target = true;
+    //     break;}
+
+    // case 4:
+
+    //     {if(!(1&(workbenches_[need_type][need_id].sources_status>>2))){
+    //         int tt = FindNearestWorkbench(2,id_robo,distance);
+    //         if(tt!=-1){
+    //             target_type = 2;
+    //             target_id = tt;
+    //         }
+    //     }
+    //     if(!(1&(workbenches_[need_type][need_id].sources_status>>1))){
+    //         int tt = FindNearestWorkbench(1,id_robo,distance);
+    //         if(tt!=-1){
+    //             target_type = 1;
+    //             target_id = tt;
+    //         }
+    //     }
+    //     SetTarget(id_robo,target_type,target_id);
+    //     has_target = true;
+    //     break;}
+
+    // default:
+    //     break;
+    // }
+    // if(has_target) return true;
+
     // normal
     rand_num_++;
-    int target_type = rand_num_%3+1;
-    has_target = SearchThisTypeReadyWorkbench(target_type,id_robo);
+    int target_types = rand_num_%3+1;
+    has_target = SearchThisTypeReadyWorkbench(target_types,id_robo);
     if(has_target) return true;
 
 
@@ -684,29 +763,37 @@ bool Solution::SearchThisTypeReadyWorkbench(int type,const int& id_robo){
             }
         }
     }
-    if(nearest_id != -1){
-        auto wb = &workbenches_[type][nearest_id];
-        wb->product_been_ordered = true;
-        robots_[id_robo]->target_type = type;
-        robots_[id_robo]->target_id = nearest_id; 
-        return true;
-    }
-    return false;
+    if(nearest_id == -1) return false;
+    SetTarget(id_robo,type,nearest_id);
+    return true;
 }
 
-void Solution::FindNearestSameWorkbench(const int& type,const int id, int& id_robo){
-    float dis = 99.;
-    float x1 = workbenches_[type][id].x, y1 = workbenches_[type][id].y;
+void Solution::SetTarget(const int& id_robo, int type, int id){
+    if(id == -1) return;
+    auto wb = &workbenches_[type][id];
+    wb->product_been_ordered = true;
+    robots_[id_robo]->target_type = type;
+    robots_[id_robo]->target_id = id; 
+}
+
+int Solution::FindNearestWorkbench(const int& type, const int& id_robo,float& dis){
+    auto rb = robots_[id_robo];
+    float x=rb->x,y=rb->y;
+    int idx = -1;
+
     // more than 1 of this type workbench
     for(int i=0;i<workbenches_[type].size();++i){
-        if(i==id) continue;
         float x2 = workbenches_[type][i].x , y2 = workbenches_[type][i].y;
-        float temp_dis = sqrt(pow(x2-x1,2)+pow(y2-y1,2));
+        float temp_dis = sqrt(pow(x2-x,2)+pow(y2-y,2));
+        int source = workbenches_[type][i].sources_status;
+        if((source>0) && (source&(source-1)!=0)) continue;  // sources are full 
         if(temp_dis < dis){
             dis = temp_dis;
-            robots_[id_robo]->target_id = i;
+            idx = i;
         }
     }
+
+    return idx;
     //cerr<<"id "<<robots_[id_robo]->target_id<<endl;
 }
 
