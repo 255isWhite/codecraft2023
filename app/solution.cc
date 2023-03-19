@@ -50,6 +50,13 @@ bool Solution::GetFrameInfo(){
                 nums_workbench_ = x;
             }
         } else if(count <= (1+nums_workbench_)){
+            if(nums_workbench_ == 50){
+                if(count >33){ // 针对四号地图
+                    stringstream ss(line);
+                    count++;
+                    continue;
+                }
+            }
             stringstream ss(line);
             int idata[4],inum;
             if(ss>>inum) idata[0]=inum;
@@ -139,10 +146,11 @@ void Solution::AssignTasks(){
         auto r = robots_[i];
         if(r->busy){
             if(!CheckTargetSourceStatus(i)) continue;
+            if(!r->thing_carry) FindBetterTarget(i);
             if(r->workbench_near == workbenches_[r->target_type][r->target_id].idx){
                 int thing_type = r->thing_carry;
                 if(thing_type == 0){
-                    if(current_frame_>8750) continue;
+                    if(current_frame_>8650) continue;
                     r->Buy();
                     r->busy = false;
                     workbenches_[r->target_type][r->target_id].product_been_ordered = false;
@@ -170,6 +178,29 @@ void Solution::AssignTasks(){
     }
     cout<<"OK"<<endl; // no need to change
     fflush(stdout); // no need to change
+}
+
+void Solution::FindBetterTarget(const int& id_robo){
+    auto rb = robots_[id_robo];
+    float dis_old = rb->target_distance;
+    float type_old = rb->target_type;
+    for(auto other_robot:robots_){
+        if(other_robot->idx == id_robo) continue;
+        if(other_robot->thing_carry) continue ;
+        if(other_robot->target_type<type_old) continue;
+        float target_dis_other = other_robot->target_distance;
+        int id_other = other_robot->target_id;
+        int type_other = other_robot->target_type;
+        float x = workbenches_[type_other][id_other].x;
+        float y = workbenches_[type_other][id_other].y;
+        float temp_dis = CalculateDistance(rb->x,rb->y,x,y);
+        if(temp_dis < target_dis_other){
+            other_robot->target_id = rb->target_id;
+            other_robot->target_type = rb->target_type;
+            rb->target_id = id_other;
+            rb->target_type = type_other;
+        }
+    }
 }
 
 bool Solution::CheckTargetSourceStatus(const int& id_robo){
@@ -323,11 +354,24 @@ void Solution::MoveRobot2Target(const int& id_robo){
     else border = 0.9163;
     double dis = rb->target_distance;
     border += 0.2;
-    speed = min(6.,exp(dis)-0.1);
+    speed = min(6.,exp(dis)+1.5);
+    //if(dis<0.8 ) rot_speed>0.2?0.2:rot_speed;
+    
     // speed = (dis<0.4?:speed);
 
-    if(abs(rot_speed)>3) speed= speed>4?4:speed;
+    // if(dis<1){
+    //     float abs_rot = min((double)abs(rot_speed),exp(-1*dis))+M_PI/6;
+    //     rot_speed = sign*abs_rot;
+    // }
 
+    if(abs(rot_speed)>3){
+        if(rb->target_distance < 2)
+            speed = 0.399 * M_PI;
+        if(rb->x<2 || rb->x>48 || rb->y<2 || rb->y>48) 
+            speed = speed>2?2:speed;
+        // else speed= speed>4?4:speed;
+        
+    }
     // pub movement actions
     rb->Forward(speed);
     rb->Rotate(rot_speed);
@@ -551,21 +595,41 @@ bool Solution::CheckProduct(const int& id_robo){
     if(has_target) return true;
 
     if(workbenches_[7].size()==0){
-        for(int i=0;i<workbenches_[9].size();++i){
-            for(int type=6;type>=4;--type){
-                has_target = SearchThisTypeReadyWorkbench(type,id_robo);
-                if(has_target) break;
-            }
+        for(int type=6;type>=4;--type){
+            has_target = SearchThisTypeReadyWorkbench(type,id_robo);
             if(has_target) break;
         }
     }
     if(has_target) return true;
     //return false;
 
+    // 针对地图4
+    // if(workbenches_[7].size()==0 && current_frame_==1){
+    //     auto wb10 = workbenches_[1][0];
+    //     robots_[0]->target_type=1;
+    //     robots_[0]->target_id=0;
+    //     wb10.product_been_ordered=true;
+    //     auto wb30 = workbenches_[3][0];
+    //     robots_[2]->target_type=3;
+    //     robots_[2]->target_id=0;
+    //     wb30.product_been_ordered=true;
+    //     auto wb21 = workbenches_[2][1];
+    //     robots_[1]->target_type=2;
+    //     robots_[1]->target_id=1;
+    //     wb21.product_been_ordered=true;
+    //     auto wb11 = workbenches_[1][1];
+    //     robots_[3]->target_type=1;
+    //     robots_[3]->target_id=1;
+    //     wb11.product_been_ordered=true;
+    // } 
+    
+    // normal
     rand_num_++;
     int target_type = rand_num_%3+1;
     has_target = SearchThisTypeReadyWorkbench(target_type,id_robo);
     if(has_target) return true;
+
+
 
 }
 

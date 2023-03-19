@@ -81,6 +81,7 @@ class Solution{
      bool SearchThisTypeReadyWorkbench(int type,const int& id_robo);
      void ComputeVirtualForce(const int& id_robo);
      bool CheckTargetSourceStatus(const int& id_robo);
+     void FindBetterTarget(const int& id_robo);
 
 
     private:
