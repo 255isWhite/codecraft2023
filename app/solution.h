@@ -82,6 +82,7 @@ class Solution{
      void ComputeVirtualForce(const int& id_robo);
      bool CheckTargetSourceStatus(const int& id_robo);
      void FindBetterTarget(const int& id_robo);
+     void PreventCollision(const int& id_robo ,float& angle, float view_field, float turn_angle,float distance, float radius);
 
 
     private:

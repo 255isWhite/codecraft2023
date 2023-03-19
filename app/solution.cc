@@ -50,15 +50,15 @@ bool Solution::GetFrameInfo(){
                 nums_workbench_ = x;
             }
         } else if(count <= (1+nums_workbench_)){
-            if(nums_workbench_ == 50){
-                if( count==31 || count==14 || count==19 || count==20 || count==23 || count==24){
-                    // nothing
-                } else if(count >= 7 || count==3 || count==7 ){ // 针对四号地图
-                    stringstream ss(line);
-                    count++;
-                    continue;
-                }
-            }
+            // if(nums_workbench_ == 50){
+            //     if( count==31 || count==14 || count==19 || count==20 || count==23 || count==24){
+            //         // nothing
+            //     } else if(count >= 7 || count==3 || count==7 ){ // 针对四号地图
+            //         stringstream ss(line);
+            //         count++;
+            //         continue;
+            //     }
+            // }
             stringstream ss(line);
             int idata[4],inum;
             if(ss>>inum) idata[0]=inum;
@@ -251,63 +251,97 @@ void Solution::ComputeVirtualForce(const int& id_robo){
         // float total_force_x = gravity_force * cos(angle);
         // float total_force_y = gravity_force * sin(angle);
 
-        for(auto& robot:robots_){
-            if(robot->idx==id_robo) continue;
-            int sign = (rand_force_++%2)?1:1;
-            float x1 = rb->x+cos(angle)*1 , y1= rb->y+sin(angle)*1;
-            float estimate_dis1 =  CalculateDistance(x1,y1,robot->x,robot->y);
-            if(estimate_dis1 < 0.9){
-                angle += sign*M_PI/4;
-                break;
-            }
-            float x2 = rb->x+cos(angle)*2 , y2= rb->y+sin(angle)*2;
-            float estimate_dis2 =  CalculateDistance(x2,y2,robot->x,robot->y);
-            if(estimate_dis2 < 0.9){
-                angle += sign*M_PI/4;
-                break;
-            }
-            float x3 = rb->x+cos(angle)*3 , y3= rb->y+sin(angle)*3;
-            float estimate_dis3 =  CalculateDistance(x3,y3,robot->x,robot->y);
-            if(estimate_dis3 < 0.9){
-                angle += sign*M_PI/4;
-                break;
-            }
-            float x5 = rb->x+cos(angle)*5 , y5= rb->y+sin(angle)*5;
-            float estimate_dis5 =  CalculateDistance(x5,y5,robot->x,robot->y);
-            if(estimate_dis5 < 0.8){
-                angle += sign*M_PI/6;
-                break;
-            }
-            float x10 = rb->x+cos(angle)*10 , y10= rb->y+sin(angle)*10;
-            float estimate_dis10 =  CalculateDistance(x10,y10,robot->x,robot->y);
-            if(estimate_dis10 < 0.5){
-                angle += sign*M_PI/6;
-                break;
-            }
+        // for(auto& robot:robots_){
+        //     if(robot->idx==id_robo) continue;
+        //     int sign = (rand_force_++%2)?1:1;
+        //     float x1 = rb->x+cos(angle)*1 , y1= rb->y+sin(angle)*1;
+        //     float estimate_dis1 =  CalculateDistance(x1,y1,robot->x,robot->y);
+        //     if(estimate_dis1 < 0.9){
+        //         angle += sign*M_PI/4;
+        //         break;
+        //     }
+        //     float x2 = rb->x+cos(angle)*2 , y2= rb->y+sin(angle)*2;
+        //     float estimate_dis2 =  CalculateDistance(x2,y2,robot->x,robot->y);
+        //     if(estimate_dis2 < 0.9){
+        //         angle += sign*M_PI/4;
+        //         break;
+        //     }
+        //     float x3 = rb->x+cos(angle)*3 , y3= rb->y+sin(angle)*3;
+        //     float estimate_dis3 =  CalculateDistance(x3,y3,robot->x,robot->y);
+        //     if(estimate_dis3 < 0.9){
+        //         angle += sign*M_PI/4;
+        //         break;
+        //     }
+        //     float x5 = rb->x+cos(angle)*5 , y5= rb->y+sin(angle)*5;
+        //     float estimate_dis5 =  CalculateDistance(x5,y5,robot->x,robot->y);
+        //     if(estimate_dis5 < 0.8){
+        //         angle += sign*M_PI/6;
+        //         break;
+        //     }
+        //     float x10 = rb->x+cos(angle)*10 , y10= rb->y+sin(angle)*10;
+        //     float estimate_dis10 =  CalculateDistance(x10,y10,robot->x,robot->y);
+        //     if(estimate_dis10 < 0.5){
+        //         angle += sign*M_PI/6;
+        //         break;
+        //     }
 
-            // other robots give forces
+        //     // other robots give forces
 
-            // float dis_between = CalculateDistance(rb->x,rb->y,robot->x,robot->y);
-            // if(dis_between > collision_dis_) continue;
-            // // float angle_away = CalculateAngle(robot->x,robot->y,rb->x,rb->y);
-            // float angle_away = angle+M_PI_2;
-            // if(angle_away>M_PI) angle_away-=2*M_PI;
-            // float force = k_obstacle_ * (1.0/dis_between - 1.0/collision_dis_)*pow(1.0/dis_between,2);
-            // // cerr<<"id "<<id_robo<<" ot force "<<force<<endl;
-            // float x_force = force * cos(angle_away);
-            // float y_force = force * sin(angle_away);
-            // total_force_x += x_force;
-            // total_force_y += y_force;
-        }
+        //     // float dis_between = CalculateDistance(rb->x,rb->y,robot->x,robot->y);
+        //     // if(dis_between > collision_dis_) continue;
+        //     // // float angle_away = CalculateAngle(robot->x,robot->y,rb->x,rb->y);
+        //     // float angle_away = angle+M_PI_2;
+        //     // if(angle_away>M_PI) angle_away-=2*M_PI;
+        //     // float force = k_obstacle_ * (1.0/dis_between - 1.0/collision_dis_)*pow(1.0/dis_between,2);
+        //     // // cerr<<"id "<<id_robo<<" ot force "<<force<<endl;
+        //     // float x_force = force * cos(angle_away);
+        //     // float y_force = force * sin(angle_away);
+        //     // total_force_x += x_force;
+        //     // total_force_y += y_force;
+        // }
+        // if(angle>M_PI) angle-=2*M_PI;
+        // if(angle<-M_PI) angle+=2*M_PI;
 
-        if(angle>M_PI) angle-=2*M_PI;
-        if(angle<-M_PI) angle+=2*M_PI;
+        PreventCollision(id_robo,angle,M_PI/3,M_PI/6,1.5,0.9);
+        PreventCollision(id_robo,angle,M_PI/4,M_PI/6,3,0.9);
+        PreventCollision(id_robo,angle,M_PI/12,M_PI/12,8,0.5);
 
         //rb->virtual_angle = atan2(total_force_y,total_force_x);
         rb->virtual_angle = angle;
         //cerr<<"id "<<id_robo<<" virtual angle after"<<rb->virtual_angle<<endl;
     }
 
+}
+
+void Solution::PreventCollision(const int& id_robo, float& angle, float view_field, float turn_angle, float distance, float radius){
+    auto rb = robots_[id_robo];
+    float angle_left = angle+view_field;
+    if(angle_left>M_PI) angle_left-=2*M_PI;
+    float angle_right = angle-view_field;
+    if(angle_right<(-M_PI)) angle_left+=2*M_PI;
+    for(auto& robot:robots_){
+        if(robot->idx==id_robo) continue;
+        
+        float x = rb->x+cos(angle)*distance , y= rb->y+sin(angle)*distance;
+        float xl = rb->x+cos(angle_left)*distance , yl = rb->y+sin(angle_left)*distance;
+        float xr = rb->x+cos(angle_right)*distance , yr = rb->y+sin(angle_right)*distance;
+
+        float estimate_dis =  CalculateDistance(x,y,robot->x,robot->y);
+        float estimate_disl =  CalculateDistance(xl,yl,robot->x,robot->y);
+        float estimate_disr =  CalculateDistance(xr,yr,robot->x,robot->y);
+
+        if(estimate_dis < radius){
+            angle += turn_angle;
+        }
+        if(estimate_disl < radius){
+            angle -= turn_angle/2;
+        }
+        if(estimate_disr < radius){
+            angle += turn_angle/2;
+        }
+    }
+    while(angle > M_PI) angle-=2*M_PI;
+    while(angle < -M_PI) angle+=2*M_PI;
 }
 
 void Solution::MoveRobot2Target(const int& id_robo){
