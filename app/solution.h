@@ -37,8 +37,17 @@ class Robot{
      float target_distance=99.;
      bool busy = false;
      int wait_time = 0; // if wait too long , just destroy wahtever carried
-
+     
+     // APF
      float virtual_force = 0., virtual_speed = 0., virtual_angle = 0.;
+
+     // DWA
+     float min_speed=-2 , max_speed=6;
+     float a = 0., alpha = 0.;
+     float max_yawrate=M_PI;
+     float radius = 0.45;
+     float local_speed = 0., local_yawrate=0.;
+
 
      // some actions can be done
      inline void Rotate(float& x);
@@ -56,6 +65,21 @@ class Robot{
         return target_type>0;
      }
 
+     void CalculateAcceleration(){
+        if(thing_carry){
+            radius = 0.53;
+            float m = 20*M_PI*radius*radius;
+            a = 250/m;
+            float J = 0.5*m*radius*radius;
+            alpha = 50/J;
+        } else {
+            radius = 0.45;
+            float m = 20*M_PI*radius*radius;
+            a = 250/m;
+            float J = 0.5*m*radius*radius;
+            alpha = 50/J;
+        }
+     }
      
 };
 
@@ -74,7 +98,8 @@ class Solution{
      float CalculateAngle(const float& x1,const float& y1,const float& x2,const float& y2);
      void SetTarget(const int& id_robo);
      void KeepRobotWait(const int& id_robo);
-     void SelectNearestWorkbench(float& dis_emerge ,float& dis_now, int type,const int& id_robo, int& source_type);
+     void SelectNearestWorkbench4567(float& dis_emerge ,float& dis_now, int type,const int& id_robo, int& source_type);
+     void SelectNearestWorkbench123(float& dis_now, int type,const int& id_robo);
      bool CheckProduct(const int& id_robo);
      int FindNearestWorkbench(const int& type, const int& id_robo, float& dis);
      void DetectLazyRobot();
@@ -84,7 +109,9 @@ class Solution{
      void FindBetterTarget(const int& id_robo);
      void PreventCollision(const int& id_robo ,float& angle, float view_field, float turn_angle,float distance, float radius);
      void SetTarget(const int& id_robo, int type, int id);
-
+     bool DWAcomputing(const int& id_robo);
+     bool DetectCollision(const int& id_robo, float& angle, float view_field, float distance, float radius);
+     void SwitchTarget(const int& id_robo);
 
     private:
      vector<vector<int>> map_;
@@ -93,6 +120,9 @@ class Solution{
      vector<vector<Workbench>> workbenches_; // store all workbenches
      vector<int> wb_count_;
      float k_gravity_ = 1.0, k_obstacle_ = 10.0, collision_dis_ = 1.5, gravity_dis_ = 3.0;
+     // DWA settings
+     float dT_ = 0.02; // 20 ms
+     float velocity_resolution_=0.1, yawrate_resolution_=0.1;
      
 };
 
