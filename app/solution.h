@@ -112,6 +112,7 @@ class Solution{
      bool DWAcomputing(const int& id_robo);
      bool DetectCollision(const int& id_robo, float& angle, float view_field, float distance, float radius);
      void SwitchTarget(const int& id_robo);
+     int FindMostEmergencyWB7(int type);
 
     private:
      vector<vector<int>> map_;

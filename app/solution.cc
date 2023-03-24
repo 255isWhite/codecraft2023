@@ -151,8 +151,7 @@ void Solution::AssignTasks(){
             if(r->workbench_near == workbenches_[r->target_type][r->target_id].idx){
                 int thing_type = r->thing_carry;
                 if(thing_type == 0){
-                    if(workbenches_[7].size()!=2 && current_frame_>8650) continue;
-                    //if(workbenches_[7].size()==2 && current_frame_>8800) continue; // special for map1
+                    if(current_frame_>8750) continue;
                     r->Buy();
                     r->busy = false;
                     workbenches_[r->target_type][r->target_id].product_been_ordered = false;
@@ -164,7 +163,7 @@ void Solution::AssignTasks(){
                     } else {
                         r->Sell();
                         auto rb = robots_[i];
-                        if(workbenches_[7].size()==1 && rb->target_type==7)
+                        //if(workbenches_[7].size()==1 && rb->target_type==7)
                         workbenches_[rb->target_type][rb->target_id].source_deliver_status &= ~(1<<rb->thing_carry);
                         r->busy = false;
                         r->ResetTarget();
@@ -241,6 +240,7 @@ bool Solution::CheckTargetSourceStatus(const int& id_robo){
         r->ResetTarget();
         return false;
     }
+
     // if(workbenches_[7].size()==1 && r->target_type==7){
     //     for(auto rb:robots_){
     //         if(rb->idx == r->idx)
@@ -508,14 +508,38 @@ void Solution::SetTarget(const int& id_robo){
             if(workbenches_[7].size()==0) SelectNearestWorkbench4567(dis_emerge, dis,9,id_robo,type_carry);
             SelectNearestWorkbench4567(dis_emerge,dis,7,id_robo,type_carry);
         } else if(type_carry==1){
-            SelectNearestWorkbench4567(dis_emerge,dis,4,id_robo,type_carry);
-            SelectNearestWorkbench4567(dis_emerge,dis,5,id_robo,type_carry);
+            if(nums_workbench_==18){
+                if(!(1&(workbenches_[4][0].sources_status>>1)) && !(1&(workbenches_[4][0].source_deliver_status>>1))){ 
+                    // if no source 1 and no robot to send 1
+                    SelectNearestWorkbench4567(dis_emerge,dis,4,id_robo,type_carry);
+                } else {
+                    SelectNearestWorkbench4567(dis_emerge,dis,5,id_robo,type_carry);
+                }
+            } else {
+                SelectNearestWorkbench4567(dis_emerge,dis,5,id_robo,type_carry);
+                SelectNearestWorkbench4567(dis_emerge,dis,4,id_robo,type_carry);
+            }
         } else if(type_carry==2){
-            SelectNearestWorkbench4567(dis_emerge,dis,4,id_robo,type_carry);
-            SelectNearestWorkbench4567(dis_emerge,dis,6,id_robo,type_carry);
+            if(nums_workbench_==18){
+                if(!(1&(workbenches_[4][0].sources_status>>2)) && !(1&(workbenches_[4][0].source_deliver_status>>2))){ 
+                    // if no source 2 and no robot to send 2
+                    SelectNearestWorkbench4567(dis_emerge,dis,4,id_robo,type_carry);
+                } else {
+                    SelectNearestWorkbench4567(dis_emerge,dis,6,id_robo,type_carry);
+                }
+            } else {
+                if(0) SelectNearestWorkbench4567(dis_emerge,dis,6,id_robo,type_carry);
+                else{
+                    SelectNearestWorkbench4567(dis_emerge,dis,6,id_robo,type_carry);
+                    SelectNearestWorkbench4567(dis_emerge,dis,4,id_robo,type_carry);
+                }
+            }
         } else if(type_carry==3){
-            SelectNearestWorkbench4567(dis_emerge,dis,5,id_robo,type_carry);
-            SelectNearestWorkbench4567(dis_emerge,dis,6,id_robo,type_carry);
+                if(0) SelectNearestWorkbench4567(dis_emerge,dis,6,id_robo,type_carry);
+                else{
+                    SelectNearestWorkbench4567(dis_emerge,dis,6,id_robo,type_carry);
+                    SelectNearestWorkbench4567(dis_emerge,dis,5,id_robo,type_carry);
+                }
             // int i = id_robo;
             // cerr<<"id "<<id_robo<<" target "<<robots_[i]->target_type<<","<<robots_[i]->target_id<<endl;
         } else cerr<<"ERROR carry "<<type_carry<<endl;
@@ -525,7 +549,8 @@ void Solution::SetTarget(const int& id_robo){
         else {
             robots_[id_robo]->busy = true;
             auto rb = robots_[id_robo];
-            if(workbenches_[7].size()==1 && rb->target_type==7)
+            // if(workbenches_[7].size()==1 && rb->target_type==7)
+            if(rb->target_type!=9 && rb->target_type!=8) // 8,9 donnot care
             workbenches_[rb->target_type][rb->target_id].source_deliver_status |= (1<<rb->thing_carry);
         }
         //cerr<<"id "<<id_robo<<" tar "<<robots_[id_robo]->target_type<<endl;
@@ -689,25 +714,16 @@ void Solution::SelectNearestWorkbench123(float& dis_now, int type,const int& id_
     }   
 }
 
+int Solution::FindMostEmergencyWB7(int type){
+    if(workbenches_[type].size()==1) return 0;
+}
+
 bool Solution::CheckProduct(const int& id_robo){
 
     // 有7直接拿， 
     // 有4，5，6需要看看7缺不缺，缺就拿，根本没有工作台7的话就拿给9
     // 
     bool has_target = SearchThisTypeReadyWorkbench(7,id_robo);
-    if(has_target) return true;
-
-    for(int i=0;i<workbenches_[7].size();++i){
-        for(int type=6;type>=4;--type){
-            if((1&(workbenches_[7][i].sources_status>>type)))
-                continue;
-            if(workbenches_[7].size()==1 && (1&(workbenches_[7][0].source_deliver_status>>type)))
-                continue;
-            has_target = SearchThisTypeReadyWorkbench(type,id_robo);
-            if(has_target) break;
-        }
-        if(has_target) break;
-    }
     if(has_target) return true;
 
     if(workbenches_[7].size()==0){
@@ -717,6 +733,20 @@ bool Solution::CheckProduct(const int& id_robo){
         }
     }
     if(has_target) return true;
+
+    for(int i=0;i<workbenches_[7].size();++i){
+        for(int type=4;type<=6;++type){
+            if((1&(workbenches_[7][i].sources_status>>type)) || (1&(workbenches_[7][0].source_deliver_status>>type)))
+                continue;
+            // if(workbenches_[7].size()==1 && (1&(workbenches_[7][0].source_deliver_status>>type)))
+            //     continue;
+            has_target = SearchThisTypeReadyWorkbench(type,id_robo);
+            if(has_target) break;
+        }
+        if(has_target) break;
+    }
+    if(has_target) return true;
+
 
 
     // if(nums_workbench_==50){
@@ -729,7 +759,9 @@ bool Solution::CheckProduct(const int& id_robo){
     // }
     // // random
     rand_num_++;
-    int target_types = rand_num_%3+1;
+    int target_types=0;
+    if(nums_workbench_==50)target_types= rand_num_%2+2; // special for map3
+    else target_types = rand_num_%3+1;
     has_target = SearchThisTypeReadyWorkbench(target_types,id_robo);
     if(has_target) return true;
 
@@ -798,8 +830,8 @@ void Solution::DetectLazyRobot(){
         if(rb->linear_speed_x==0 && rb->linear_speed_y==0 && rb->angular_speed==0){
             rb->wait_time ++;
         } else rb->wait_time=0;
-        if(rb->wait_time == 1000)
-            rb->Destroy();
+        if(rb->wait_time == 50)
+            SetTarget(rb->idx);
     }
 }
 

@@ -1,6 +1,8 @@
 .vscode/**
 .replayer/**
 .replay/**
+.app/build/CodeCraft_2023_Replay.x86_64
+.app/build/CodeCraft_2023_Replay.pck
 .app/build/replay/**
 .app/build/CMakeFiles
 .app/CodeCraft-2023.zip
