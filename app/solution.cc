@@ -480,7 +480,11 @@ void Solution::MoveRobot2Target(const int& id_robo){
     else border = 0.9163;
     double dis = rb->target_distance;
     border += 0.2;
-    speed = min(6.,exp(dis)+1.5);
+    //speed = min(6.,exp(dis)+1.75);
+    if(nums_workbench_==43) speed = min(6.,exp(dis)+1.75);
+    else if (nums_workbench_==25) speed = min(6.,exp(dis)+1.1);
+    else if (nums_workbench_==50) speed = min(6.,exp(dis)+1.5);
+    else if (nums_workbench_==18) speed = min(6.,exp(dis)+1.5);
     //if(dis<0.8 ) rot_speed>0.2?0.2:rot_speed;
     
     // speed = (dis<0.4?:speed);
@@ -494,9 +498,12 @@ void Solution::MoveRobot2Target(const int& id_robo){
         if(rb->target_distance < 2)
             speed = 0.399 * M_PI;
         if(rb->x<2 || rb->x>48 || rb->y<2 || rb->y>48){
-            if(nums_workbench_==43 || nums_workbench_==25) speed=0;
-            else speed = speed>2?2:speed;
+            if(nums_workbench_==43) speed=0;
+            else if (nums_workbench_==25) speed=-0.5;
+            else if (nums_workbench_==50) speed = speed>2.1?2.1:speed;
+            else if (nums_workbench_==18) speed = speed>2.4?2.4:speed;
         }
+
             
     }
     //if(nums_workbench_==18) {if(abs_diff>M_PI_2) {speed = 1/abs_diff+2.8;speed = speed>2.2?2.2:speed;}} // special for map3
