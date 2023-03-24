@@ -50,10 +50,8 @@ bool Solution::GetFrameInfo(){
                 nums_workbench_ = x;
             }
         } else if(count <= (1+nums_workbench_)){
-            // if(nums_workbench_ == 50){
-            //     if( count==31 || count==14 || count==19 || count==20 || count==23 || count==24){
-            //         // nothing
-            //     } else if(count >= 7 || count==3 || count==7 ){ // 针对四号地图
+            // if(nums_workbench_ == 18){ // special map4
+            //     if( count==2){
             //         stringstream ss(line);
             //         count++;
             //         continue;
@@ -149,12 +147,12 @@ void Solution::AssignTasks(){
         if(r->busy){
             if(!CheckTargetSourceStatus(i)) continue;
             if(!r->thing_carry) FindBetterTarget(i);
-            else if(nums_workbench_==18)SwitchTarget(i); // special for map3
+            //else if(nums_workbench_==18)SwitchTarget(i); // special for map3
             if(r->workbench_near == workbenches_[r->target_type][r->target_id].idx){
                 int thing_type = r->thing_carry;
                 if(thing_type == 0){
                     if(workbenches_[7].size()!=2 && current_frame_>8650) continue;
-                    if(workbenches_[7].size()==2 && current_frame_>8800) continue; // special for map1
+                    //if(workbenches_[7].size()==2 && current_frame_>8800) continue; // special for map1
                     r->Buy();
                     r->busy = false;
                     workbenches_[r->target_type][r->target_id].product_been_ordered = false;
@@ -476,7 +474,7 @@ void Solution::MoveRobot2Target(const int& id_robo){
         if(rb->x<2 || rb->x>48 || rb->y<2 || rb->y>48) 
             speed = speed>2?2:speed;
     }
-    if(nums_workbench_==18) {if(abs_diff>M_PI_2) {speed = 1/abs_diff+2.8;speed = speed>2.2?2.2:speed;}} // special for map3
+    //if(nums_workbench_==18) {if(abs_diff>M_PI_2) {speed = 1/abs_diff+2.8;speed = speed>2.2?2.2:speed;}} // special for map3
 
     rb->Forward(speed);
     rb->Rotate(rot_speed);
@@ -554,7 +552,7 @@ void Solution::SelectNearestWorkbench4567(float& dis_emerge, float& dis_now, int
             switch (source_type)
             {
             case 4:
-                if((1&(wb.sources_status>>5)) && (1&(wb.sources_status>>6))){
+                if((1&(wb.sources_status>>5)) || (1&(wb.sources_status>>6))){
                     float temp = CalculateDistance(rb->x,rb->y,wb.x,wb.y);
                     if(temp < dis_emerge){
                         dis_emerge = temp;
@@ -564,7 +562,7 @@ void Solution::SelectNearestWorkbench4567(float& dis_emerge, float& dis_now, int
                 }
                 break;
             case 5:
-                if((1&(wb.sources_status>>4)) && (1&(wb.sources_status>>6))){
+                if((1&(wb.sources_status>>4)) || (1&(wb.sources_status>>6))){
                     float temp = CalculateDistance(rb->x,rb->y,wb.x,wb.y);
                     if(temp < dis_emerge){
                         dis_emerge = temp;
@@ -574,7 +572,7 @@ void Solution::SelectNearestWorkbench4567(float& dis_emerge, float& dis_now, int
                 }
                 break;
             case 6:
-                if((1&(wb.sources_status>>4)) && (1&(wb.sources_status>>5))){
+                if((1&(wb.sources_status>>4)) || (1&(wb.sources_status>>5))){
                     float temp = CalculateDistance(rb->x,rb->y,wb.x,wb.y);
                     if(temp < dis_emerge){
                         dis_emerge = temp;
@@ -746,7 +744,13 @@ bool Solution::SearchThisTypeReadyWorkbench(int type,const int& id_robo){
     auto rb = robots_[id_robo];
     for(int j=0;j<workbenches_[type].size();++j){
         auto wb = &workbenches_[type][j];
-        if(wb->product_status && !wb->product_been_ordered){
+        //if(wb->product_status && !wb->product_been_ordered){
+        if(wb->product_status){
+            if(nums_workbench_==43 || nums_workbench_==18){
+                if(type!=1&&type!=2&&type!=3){
+                    if( wb->product_been_ordered) continue;
+                } // special map1
+            } else if( wb->product_been_ordered) continue;
             float temp_dis = CalculateDistance(rb->x,rb->y,wb->x,wb->y);
             // cerr<<"temp "<<temp_dis<<" type "<<type<<" id "<<j<<endl;
             if(temp_dis<dis){
