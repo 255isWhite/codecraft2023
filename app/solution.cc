@@ -291,8 +291,10 @@ void Solution::ComputeVirtualForce(const int& id_robo){
         float angle = CalculateAngle(rb->x,rb->y,wb->x,wb->y);
 
         // DWAcomputing(id_robo);
-
-        PreventCollision(id_robo,angle,M_PI/3,M_PI/6,1.5,0.9);
+        if(nums_workbench_==18){
+            PreventCollision(id_robo,angle,M_PI/3,M_PI/4,2,1);
+        } else PreventCollision(id_robo,angle,M_PI/3,M_PI/6,1.5,0.9);
+        
         PreventCollision(id_robo,angle,M_PI/4,M_PI/6,3,0.9);
         PreventCollision(id_robo,angle,M_PI/12,M_PI/12,8,0.5);
 
