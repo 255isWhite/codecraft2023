@@ -493,8 +493,11 @@ void Solution::MoveRobot2Target(const int& id_robo){
     if(abs(rot_speed)>3){
         if(rb->target_distance < 2)
             speed = 0.399 * M_PI;
-        if(rb->x<2 || rb->x>48 || rb->y<2 || rb->y>48) 
-            speed = speed>2?2:speed;
+        if(rb->x<2 || rb->x>48 || rb->y<2 || rb->y>48){
+            if(nums_workbench_==43 || nums_workbench_==25) speed=0;
+            else speed = speed>2?2:speed;
+        }
+            
     }
     //if(nums_workbench_==18) {if(abs_diff>M_PI_2) {speed = 1/abs_diff+2.8;speed = speed>2.2?2.2:speed;}} // special for map3
 
