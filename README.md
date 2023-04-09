@@ -53,7 +53,7 @@ English | [简体中文](.github/README_cn.md)
     git clone git@github.com:255isWhite/codecraft2023.git
 ```
 
-1.  
+2.  
 ```bash
     cd codecraft2023/app/build
     cmake ..
