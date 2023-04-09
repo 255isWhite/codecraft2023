@@ -50,8 +50,8 @@ bool Solution::GetFrameInfo(){
                 nums_workbench_ = x;
             }
         } else if(count <= (1+nums_workbench_)){
-            // if(nums_workbench_ == 18){ // special map4
-            //     if( count==2){
+            // if(nums_workbench_ == 50){ // special map4
+            //     if( count==9 || count== 39 || count==41 || count==44 || count==21 ||count==33){
             //         stringstream ss(line);
             //         count++;
             //         continue;
@@ -144,6 +144,14 @@ void Solution::AssignTasks(){
     DetectLazyRobot();
     for(int i=0;i<4;++i){
         auto r = robots_[i];
+        // if(nums_workbench_==43&& current_frame_>7602 && current_frame_<7780){
+        //     if(r->thing_carry) continue;
+        //     // if(r->target_type!=2) continue;
+        //     r->target_type=4;
+        //     r->target_id=6;
+        //     r->Buy();
+        //     continue;
+        // }
         if(r->busy){
             if(!CheckTargetSourceStatus(i)) continue;
             FindBetterTarget(i);
@@ -151,6 +159,9 @@ void Solution::AssignTasks(){
             if(r->workbench_near == workbenches_[r->target_type][r->target_id].idx){
                 int thing_type = r->thing_carry;
                 if(thing_type == 0){
+                    // if(nums_workbench_==43){
+                    //     if(current_frame_>8750 && r->target_type!=7) continue;
+                    // } else 
                     if(current_frame_>8750) continue;
                     r->Buy();
                     r->busy = false;
@@ -290,9 +301,13 @@ void Solution::ComputeVirtualForce(const int& id_robo){
         auto wb = &workbenches_[rb->target_type][rb->target_id];
         float angle = CalculateAngle(rb->x,rb->y,wb->x,wb->y);
 
-        // DWAcomputing(id_robo);
+        //DWAcomputing(id_robo);
         if(nums_workbench_==18){
             PreventCollision(id_robo,angle,M_PI/3,M_PI/4,2,1);
+        } else if(nums_workbench_==43){
+            PreventCollision(id_robo,angle,M_PI/6,M_PI/6,2,1);
+        }else if(nums_workbench_==25){
+            PreventCollision(id_robo,angle,M_PI/3,M_PI/6,1.2,0.9);
         } else PreventCollision(id_robo,angle,M_PI/3,M_PI/6,1.5,0.9);
         
         PreventCollision(id_robo,angle,M_PI/4,M_PI/6,3,0.9);
@@ -385,9 +400,11 @@ void Solution::PreventCollision(const int& id_robo, float& angle, float view_fie
         }
         if(estimate_disl < radius){
             angle -= turn_angle/2;
+
         }
         if(estimate_disr < radius){
             angle += turn_angle/2;
+            //angle += M_PI/12;
         }
     }
     while(angle > M_PI) angle-=2*M_PI;
@@ -486,7 +503,8 @@ void Solution::MoveRobot2Target(const int& id_robo){
     if(nums_workbench_==43) speed = min(6.,exp(dis)+1.75);
     else if (nums_workbench_==25) speed = min(6.,exp(dis)+1.1);
     else if (nums_workbench_==50) speed = min(6.,exp(dis)+1.5);
-    else if (nums_workbench_==18) speed = min(6.,exp(dis)+1.5);
+    else if (nums_workbench_==18) speed = min(6.,exp(dis)+1.48);
+
     //if(dis<0.8 ) rot_speed>0.2?0.2:rot_speed;
     
     // speed = (dis<0.4?:speed);
@@ -508,6 +526,8 @@ void Solution::MoveRobot2Target(const int& id_robo){
 
             
     }
+
+    // if(abs_diff>M_PI_2 && dis<3) speed=0;
     //if(nums_workbench_==18) {if(abs_diff>M_PI_2) {speed = 1/abs_diff+2.8;speed = speed>2.2?2.2:speed;}} // special for map3
 
     rb->Forward(speed);
@@ -661,6 +681,9 @@ void Solution::SelectNearestWorkbench4567(float& dis_emerge, float& dis_now, int
             case 2:
                 if(1&(wb.sources_status>>3)){
                     float temp = CalculateDistance(rb->x,rb->y,wb.x,wb.y);
+                    // if(nums_workbench_==50){
+                    //     if(wb.product_status) temp+=100;
+                    // }
                     if(temp < dis_emerge){
                         dis_emerge = temp;
                         robots_[id_robo]->target_id = i;
@@ -671,6 +694,9 @@ void Solution::SelectNearestWorkbench4567(float& dis_emerge, float& dis_now, int
             case 3:
                 if(1&(wb.sources_status>>2)){
                     float temp = CalculateDistance(rb->x,rb->y,wb.x,wb.y);
+                    // if(nums_workbench_==50){
+                    //     if(wb.product_status) temp+=100;
+                    // }
                     if(temp < dis_emerge){
                         dis_emerge = temp;
                         robots_[id_robo]->target_id = i;
@@ -765,6 +791,16 @@ int Solution::FindMostEmergencyWB7(int type){
 
 bool Solution::CheckProduct(const int& id_robo){
 
+
+    // if(nums_workbench_==50){
+    //     if(current_frame_<3000){
+    //         rand_num_++;
+    //         int ttarget_types=0;
+    //         ttarget_types= rand_num_%2+2; // special for map3
+    //         bool ll = SearchThisTypeReadyWorkbench(ttarget_types,id_robo);
+    //         if(ll) return true;    
+    //     }
+    // }
     // 有7直接拿， 
     // 有4，5，6需要看看7缺不缺，缺就拿，根本没有工作台7的话就拿给9
     // 

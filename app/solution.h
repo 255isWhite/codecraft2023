@@ -48,6 +48,9 @@ class Robot{
      float radius = 0.45;
      float local_speed = 0., local_yawrate=0.;
 
+     // others
+     float nearest_pair_dis = 99.;
+
 
      // some actions can be done
      inline void Rotate(float& x);
@@ -92,6 +95,7 @@ class Solution{
      void InitMap();  // init 100*100 map
      bool GetFrameInfo(); // get information of workbenches and robots per frame
      void AssignTasks(); // try to get a plan for each robot and print it
+     void PairWorkbenches();
 
      void MoveRobot2Target(const int& id_robo);
      float CalculateDistance(const float& x1,const float& y1,const float& x2,const float& y2);

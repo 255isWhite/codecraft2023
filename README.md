@@ -13,13 +13,23 @@ English | [简体中文](.github/README_cn.md)
 
 </div>
 
+## <div align="center">Result</div>
+<div align='center'>
+
+<p> Our team ranks 34th in Jiangsu&Shandong region!!! (a little pity that 32th can continue)</p>
+
+<img src=".github/imgs/result.png" width="800">
+
+</div>
+
+
 ## <div align="center">Details</div>
 
 <details open>
 
 <summary>Highlights</summary>
 
-- To be done
+- Multi-robot system with collide prevention and task assignment
 
 
 </details>
@@ -29,7 +39,7 @@ English | [简体中文](.github/README_cn.md)
 <summary>Dependencies</summary>
 
 <!-- names of dependencies and websites if had -->
-- To be done
+- Only basic C++ libraries
 
     <!-- some details about environment if needed -->  
 
@@ -58,7 +68,7 @@ English | [简体中文](.github/README_cn.md)
 
 <summary>Known Bugs</summary>
 
-- Unknown
+- Many, TAT
 
 </details>
 
